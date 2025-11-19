@@ -53,7 +53,7 @@ def join_group(group_id: int, participant: ParticipantCreate, db: Session = Depe
     if not db_group:
         raise HTTPException(404, "Group not found")
     if db_group.drawn:
-        raise HTTPException(400, "Cannot join - names have already been drawn")
+        raise HTTPException(400, "Registration is closed. Names have already been drawn. Ask the organizer to reset the draw if you need to join.")
     db_part = Participant(**participant.dict(), group_id=group_id)
     db.add(db_part)
     db.commit()

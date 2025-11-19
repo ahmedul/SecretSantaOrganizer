@@ -94,13 +94,27 @@ class _JoinGroupScreenState extends State<JoinGroupScreen> {
             ),
           );
         }
+      } else if (response.statusCode == 404) {
+        throw Exception('Group not found. Please check the group code and try again.');
+      } else if (response.statusCode == 400) {
+        final errorData = jsonDecode(response.body);
+        throw Exception(errorData['detail'] ?? 'Cannot join this group.');
       } else {
-        throw Exception('Failed to join group');
+        throw Exception('Failed to join group. Please try again later.');
       }
     } catch (e) {
       if (mounted) {
+        String errorMessage = e.toString();
+        // Remove "Exception: " prefix for cleaner error message
+        if (errorMessage.startsWith('Exception: ')) {
+          errorMessage = errorMessage.substring(11);
+        }
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            duration: const Duration(seconds: 4),
+          ),
         );
       }
     } finally {

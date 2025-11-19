@@ -325,28 +325,29 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with SingleTicker
                   items: participants.map<DropdownMenuItem<int>>((p) => DropdownMenuItem<int>(
                     value: p['id'] as int,
                     child: Text(p['name']),
-                )).toList(),
-                onChanged: (value) => setState(() => participantId = value),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: amountController,
-                decoration: const InputDecoration(
-                  labelText: 'Amount',
-                  prefixText: '\$',
-                  border: OutlineInputBorder(),
+                  )).toList(),
+                  onChanged: (value) => setState(() => participantId = value),
                 ),
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: descController,
-                decoration: const InputDecoration(
-                  labelText: 'Description (optional)',
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: amountController,
+                  decoration: const InputDecoration(
+                    labelText: 'Amount',
+                    prefixText: '\$',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
                 ),
-              ),
-            ],
+                const SizedBox(height: 12),
+                TextField(
+                  controller: descController,
+                  decoration: const InputDecoration(
+                    labelText: 'Description (optional)',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -679,6 +680,25 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with SingleTicker
   Widget _buildParticipantsTab(List participants, bool isDrawn) {
     return Column(
       children: [
+        // Informational banner when registration is closed
+        if (isDrawn)
+          Container(
+            width: double.infinity,
+            color: Theme.of(context).colorScheme.errorContainer,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                const Icon(Icons.lock, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Registration is closed — names have been drawn. Ask the organizer to reset the draw to add late participants.',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+          ),
         // My Target Card (if drawn)
         if (isDrawn && _myTarget != null)
           Card(

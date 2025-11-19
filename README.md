@@ -40,11 +40,38 @@ DrawJoy solves the classic Secret Santa problem: **how do you randomly assign gi
   - Respects exclusion rules (if set)
   - Keeps assignments completely private
 - If emails were provided, everyone gets notified automatically
+- **⚠️ Important**: Once names are drawn, registration closes automatically to prevent late joiners from disrupting assignments
 
 #### 4️⃣ **View Your Assignment** (Everyone)
 - Open the app and go to your group
 - See who you're buying for and their wishlist
 - **Important**: You can ONLY see who YOU'RE buying for, not who has you!
+
+### Two-Phase System: Registration vs. Draw Complete
+
+DrawJoy uses a **two-phase workflow** to ensure fair Secret Santa assignments:
+
+**📝 Phase 1: Registration Open**
+- Anyone with the group code can join
+- Organizer can add/remove participants
+- Set exclusions and manage budget
+- No assignments yet - participants can freely join
+
+**🔒 Phase 2: Draw Complete (Registration Closed)**
+- Names have been drawn and assigned
+- New participants **cannot** join to prevent disrupting assignments
+- All participants can view their Secret Santa assignment
+- Organizer can still manage the group
+
+**❓ What if someone needs to join late?**
+If someone needs to join after names are drawn:
+1. **Organizer** opens the group menu (⋮)
+2. Tap **"Reset Draw"** to clear all assignments
+3. The late joiner can now join the group
+4. **Organizer** taps **"Draw Names"** again to generate new assignments
+5. Everyone gets notified of their new assignments
+
+This ensures the Secret Santa assignments remain fair and complete - everyone has exactly one person to buy for!
 
 ### Real-World Example:
 
@@ -66,8 +93,10 @@ DrawJoy solves the classic Secret Santa problem: **how do you randomly assign gi
 - 🚫 **Exclusions** - Prevent certain pairings (e.g., couples, best friends who already exchange gifts)
 - 📧 **Email Notifications** - Optional notifications when names are drawn
 - 📱 **Cross-Platform** - iOS, Android, and Web support
-- 💰 **Budget Tracking** - Set spending limits for your group
+- 💰 **Budget Tracking** - Set spending limits and track expenses for your group
 - 🌐 **Works Remotely** - Perfect for distributed teams or families
+- 🔄 **Reset & Redraw** - Need to add someone late? Organizers can reset and redraw names
+- 🎯 **Two-Phase System** - Registration open until draw, then locked to preserve assignments
 
 ## 📁 Project Structure
 
