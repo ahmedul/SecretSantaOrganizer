@@ -52,6 +52,8 @@ def join_group(group_id: int, participant: ParticipantCreate, db: Session = Depe
     db_group = db.query(Group).filter(Group.id == group_id).first()
     if not db_group:
         raise HTTPException(404, "Group not found")
+    if db_group.drawn:
+        raise HTTPException(400, "Cannot join - names have already been drawn")
     db_part = Participant(**participant.dict(), group_id=group_id)
     db.add(db_part)
     db.commit()
@@ -104,6 +106,26 @@ def draw(group_id: int, db: Session = Depends(get_db)):
         print(f"Email sending skipped: {e}")
 
     return {"status": "drawn"}
+
+@app.post("/groups/{group_id}/reset-draw")
+def reset_draw(group_id: int, db: Session = Depends(get_db)):
+    """Reset the draw to allow adding more participants or re-drawing"""
+    group = db.query(Group).filter(Group.id == group_id).first()
+    if not group:
+        raise HTTPException(404, "Group not found")
+    if not group.drawn:
+        raise HTTPException(400, "Names haven't been drawn yet")
+    
+    # Clear all target assignments
+    participants = db.query(Participant).filter(Participant.group_id == group_id).all()
+    for p in participants:
+        p.target_id = None
+    
+    # Mark group as not drawn
+    group.drawn = False
+    db.commit()
+    
+    return {"status": "reset", "message": "Draw has been reset. You can now add participants or draw again."}
 
 @app.get("/groups/{group_id}/my-target/{participant_id}")
 def get_my_target(group_id: int, participant_id: int, db: Session = Depends(get_db)):

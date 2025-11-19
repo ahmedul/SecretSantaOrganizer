@@ -535,6 +535,49 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with SingleTicker
     }
   }
 
+  Future<void> _resetDraw() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Reset Draw?'),
+        content: const Text(
+          'This will clear all assignments and allow you to add more participants or re-draw names.\n\n'
+          'Warning: Everyone will need to check their new assignments again!',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.orange),
+            child: const Text('Reset'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        final response = await http.post(
+          Uri.parse('${ApiService.baseUrl}/groups/${widget.groupId}/reset-draw'),
+        );
+
+        if (response.statusCode == 200) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Draw reset! You can now add participants or draw again.')),
+          );
+          _loadGroupDetails();
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading || _groupData == null) {
@@ -568,6 +611,17 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with SingleTicker
                   ],
                 ),
               ),
+              if (isDrawn)
+                const PopupMenuItem(
+                  value: 'reset',
+                  child: Row(
+                    children: [
+                      Icon(Icons.restart_alt, color: Colors.orange),
+                      SizedBox(width: 8),
+                      Text('Reset Draw', style: TextStyle(color: Colors.orange)),
+                    ],
+                  ),
+                ),
               if (!isDrawn)
                 const PopupMenuItem(
                   value: 'delete',
@@ -585,6 +639,8 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with SingleTicker
                 _loadGroupDetails();
                 _loadExclusions();
                 _loadExpenses();
+              } else if (value == 'reset') {
+                _resetDraw();
               } else if (value == 'delete') {
                 _deleteGroup();
               }
