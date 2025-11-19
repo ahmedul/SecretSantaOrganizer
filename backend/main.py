@@ -6,7 +6,7 @@ from typing import List, Optional
 import resend
 import os
 from database import SessionLocal, Base, engine
-from models import Group, Participant, Exclusion
+from models import Group, Participant, Exclusion, Expense
 from derangement import derange_with_exclusions
 
 resend.api_key = os.getenv("RESEND_API_KEY")  # put your key in Render env vars
@@ -121,7 +121,138 @@ def get_group(group_id: int, db: Session = Depends(get_db)):
     return {
         "name": group.name,
         "drawn": group.drawn,
-        "participants": [{"id": p.id, "name": p.name, "wishlist": p.wishlist} for p in group.participants]
+        "budget": group.budget,
+        "participants": [{"id": p.id, "name": p.name, "wishlist": p.wishlist} for p in group.participants],
+        "exclusions": [{"giver_id": e.giver_id, "receiver_id": e.receiver_id} for e in group.exclusions]
+    }
+
+# New endpoints for additional features
+
+@app.put("/participants/{participant_id}/wishlist")
+def update_wishlist(participant_id: int, wishlist: str, db: Session = Depends(get_db)):
+    """Update participant's wishlist"""
+    p = db.query(Participant).filter(Participant.id == participant_id).first()
+    if not p:
+        raise HTTPException(404, "Participant not found")
+    p.wishlist = wishlist
+    db.commit()
+    return {"status": "updated", "wishlist": wishlist}
+
+@app.delete("/groups/{group_id}")
+def delete_group(group_id: int, db: Session = Depends(get_db)):
+    """Delete a group and all its participants"""
+    group = db.query(Group).filter(Group.id == group_id).first()
+    if not group:
+        raise HTTPException(404, "Group not found")
+    # Delete all participants first
+    db.query(Participant).filter(Participant.group_id == group_id).delete()
+    # Delete all exclusions
+    db.query(Exclusion).filter(Exclusion.group_id == group_id).delete()
+    # Delete the group
+    db.delete(group)
+    db.commit()
+    return {"status": "deleted"}
+
+@app.delete("/participants/{participant_id}")
+def remove_participant(participant_id: int, db: Session = Depends(get_db)):
+    """Remove a participant from a group (only before drawing)"""
+    p = db.query(Participant).filter(Participant.id == participant_id).first()
+    if not p:
+        raise HTTPException(404, "Participant not found")
+    group = db.query(Group).filter(Group.id == p.group_id).first()
+    if group.drawn:
+        raise HTTPException(400, "Cannot remove participant after names have been drawn")
+    db.delete(p)
+    db.commit()
+    return {"status": "removed"}
+
+@app.get("/groups/{group_id}/exclusions")
+def get_exclusions(group_id: int, db: Session = Depends(get_db)):
+    """Get all exclusion rules for a group"""
+    group = db.query(Group).filter(Group.id == group_id).first()
+    if not group:
+        raise HTTPException(404, "Group not found")
+    exclusions = db.query(Exclusion).filter(Exclusion.group_id == group_id).all()
+    participants = {p.id: p.name for p in group.participants}
+    return {
+        "exclusions": [
+            {
+                "id": e.id,
+                "giver_id": e.giver_id,
+                "giver_name": participants.get(e.giver_id, "Unknown"),
+                "receiver_id": e.receiver_id,
+                "receiver_name": participants.get(e.receiver_id, "Unknown")
+            }
+            for e in exclusions
+        ]
+    }
+
+@app.delete("/exclusions/{exclusion_id}")
+def delete_exclusion(exclusion_id: int, db: Session = Depends(get_db)):
+    """Delete an exclusion rule"""
+    excl = db.query(Exclusion).filter(Exclusion.id == exclusion_id).first()
+    if not excl:
+        raise HTTPException(404, "Exclusion not found")
+    db.delete(excl)
+    db.commit()
+    return {"status": "deleted"}
+
+# Budget Tracker endpoints
+
+class ExpenseCreate(BaseModel):
+    participant_id: int
+    amount: float
+    description: Optional[str] = None
+
+@app.post("/groups/{group_id}/expenses")
+def add_expense(group_id: int, expense: ExpenseCreate, db: Session = Depends(get_db)):
+    """Add an expense for budget tracking"""
+    group = db.query(Group).filter(Group.id == group_id).first()
+    if not group:
+        raise HTTPException(404, "Group not found")
+    participant = db.query(Participant).filter(Participant.id == expense.participant_id).first()
+    if not participant or participant.group_id != group_id:
+        raise HTTPException(404, "Participant not found in this group")
+    
+    db_expense = Expense(
+        participant_id=expense.participant_id,
+        group_id=group_id,
+        amount=expense.amount,
+        description=expense.description
+    )
+    db.add(db_expense)
+    db.commit()
+    db.refresh(db_expense)
+    return db_expense
+
+@app.get("/groups/{group_id}/expenses")
+def get_expenses(group_id: int, db: Session = Depends(get_db)):
+    """Get all expenses for a group with budget summary"""
+    group = db.query(Group).filter(Group.id == group_id).first()
+    if not group:
+        raise HTTPException(404, "Group not found")
+    
+    expenses = db.query(Expense).filter(Expense.group_id == group_id).all()
+    total_spent = sum(e.amount for e in expenses)
+    
+    participants = {p.id: p.name for p in group.participants}
+    budget = float(group.budget) if group.budget and group.budget.replace('.', '').isdigit() else None
+    
+    return {
+        "budget": budget,
+        "total_spent": total_spent,
+        "remaining": (budget - total_spent) if budget else None,
+        "expenses": [
+            {
+                "id": e.id,
+                "participant_id": e.participant_id,
+                "participant_name": participants.get(e.participant_id, "Unknown"),
+                "amount": e.amount,
+                "description": e.description,
+                "created_at": e.created_at.isoformat()
+            }
+            for e in expenses
+        ]
     }
 
 # Initialize database

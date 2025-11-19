@@ -65,6 +65,22 @@ class _JoinGroupScreenState extends State<JoinGroupScreen> {
         await prefs.setInt('participant_id_$groupId', participantId);
         await prefs.setString('participant_name_$groupId', _nameController.text);
 
+        // Save to group history
+        final groupsJson = prefs.getString('my_groups') ?? '[]';
+        final List<dynamic> groups = jsonDecode(groupsJson);
+        // Check if group already exists
+        final existingIndex = groups.indexWhere((g) => g['group_id'] == groupId);
+        if (existingIndex == -1) {
+          groups.add({
+            'group_id': groupId,
+            'name': 'Group $groupId', // Will be updated when viewing
+            'my_participant_id': participantId,
+            'joined_at': DateTime.now().toIso8601String(),
+            'role': 'participant',
+          });
+          await prefs.setString('my_groups', jsonEncode(groups));
+        }
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Successfully joined! 🎉')),

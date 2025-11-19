@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, DateTime, Float
 from sqlalchemy.orm import relationship
 from database import Base
 import datetime
@@ -14,6 +14,7 @@ class Group(Base):
 
     participants = relationship("Participant", back_populates="group")
     exclusions = relationship("Exclusion", back_populates="group")
+    expenses = relationship("Expense", back_populates="group")
 
 class Participant(Base):
     __tablename__ = "participants"
@@ -25,6 +26,7 @@ class Participant(Base):
     target_id = Column(Integer, nullable=True)  # filled after draw
 
     group = relationship("Group", back_populates="participants")
+    expenses = relationship("Expense", back_populates="participant")
 
 class Exclusion(Base):
     __tablename__ = "exclusions"
@@ -34,3 +36,15 @@ class Exclusion(Base):
     group_id = Column(Integer, ForeignKey("groups.id"))
 
     group = relationship("Group", back_populates="exclusions")
+
+class Expense(Base):
+    __tablename__ = "expenses"
+    id = Column(Integer, primary_key=True, index=True)
+    participant_id = Column(Integer, ForeignKey("participants.id"))
+    group_id = Column(Integer, ForeignKey("groups.id"))
+    amount = Column(Float)
+    description = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    participant = relationship("Participant", back_populates="expenses")
+    group = relationship("Group", back_populates="expenses")

@@ -46,6 +46,18 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
         final groupId = data['group_id'];
         final shareLink = data['share_link'];
 
+        // Save to history
+        final prefs = await SharedPreferences.getInstance();
+        final groupsJson = prefs.getString('my_groups') ?? '[]';
+        final List<dynamic> groups = jsonDecode(groupsJson);
+        groups.add({
+          'group_id': groupId,
+          'name': _nameController.text,
+          'created_at': DateTime.now().toIso8601String(),
+          'role': 'organizer',
+        });
+        await prefs.setString('my_groups', jsonEncode(groups));
+
         if (mounted) {
           // Show success dialog with share option
           showDialog(
