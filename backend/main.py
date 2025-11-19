@@ -88,16 +88,20 @@ def draw(group_id: int, db: Session = Depends(get_db)):
     group.drawn = True
     db.commit()
 
-    # Optional email blast
-    for p in participants:
-        if p.email and p.target_id:
-            target = db.query(Participant).filter(Participant.id == p.target_id).first()
-            resend.Emails.send({
-                "from": "santa@drawjoy.app",
-                "to": p.email,
-                "subject": f"Your Secret Santa for {group.name}!",
-                "html": f"You are buying for <b>{target.name}</b>!<br>Wishlist: {target.wishlist or '—'}",
-            })
+    # Optional email blast (only if API key is configured)
+    try:
+        for p in participants:
+            if p.email and p.target_id:
+                target = db.query(Participant).filter(Participant.id == p.target_id).first()
+                resend.Emails.send({
+                    "from": "santa@drawjoy.app",
+                    "to": p.email,
+                    "subject": f"Your Secret Santa for {group.name}!",
+                    "html": f"You are buying for <b>{target.name}</b>!<br>Wishlist: {target.wishlist or '—'}",
+                })
+    except Exception as e:
+        # Email sending failed, but draw was successful
+        print(f"Email sending skipped: {e}")
 
     return {"status": "drawn"}
 
