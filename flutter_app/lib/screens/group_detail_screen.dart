@@ -238,8 +238,8 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with SingleTicker
                   labelText: 'Person',
                   border: OutlineInputBorder(),
                 ),
-                items: participants.map((p) => DropdownMenuItem(
-                  value: p['id'],
+                items: participants.map<DropdownMenuItem<int>>((p) => DropdownMenuItem<int>(
+                  value: p['id'] as int,
                   child: Text(p['name']),
                 )).toList(),
                 onChanged: (value) => setState(() => giverId = value),
@@ -252,8 +252,8 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with SingleTicker
                   labelText: 'Person',
                   border: OutlineInputBorder(),
                 ),
-                items: participants.map((p) => DropdownMenuItem(
-                  value: p['id'],
+                items: participants.map<DropdownMenuItem<int>>((p) => DropdownMenuItem<int>(
+                  value: p['id'] as int,
                   child: Text(p['name']),
                 )).toList(),
                 onChanged: (value) => setState(() => receiverId = value),
@@ -307,17 +307,24 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with SingleTicker
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
           title: const Text('Add Expense'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DropdownButtonFormField<int>(
-                decoration: const InputDecoration(
-                  labelText: 'Who spent',
-                  border: OutlineInputBorder(),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Track spending for this group. You can add multiple expenses per person.',
+                  style: TextStyle(fontSize: 13),
                 ),
-                items: participants.map((p) => DropdownMenuItem(
-                  value: p['id'],
-                  child: Text(p['name']),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<int>(
+                  decoration: const InputDecoration(
+                    labelText: 'Who spent the money',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: participants.map<DropdownMenuItem<int>>((p) => DropdownMenuItem<int>(
+                    value: p['id'] as int,
+                    child: Text(p['name']),
                 )).toList(),
                 onChanged: (value) => setState(() => participantId = value),
               ),
@@ -426,6 +433,66 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with SingleTicker
           SnackBar(content: Text('Error: ${e.toString()}')),
         );
       }
+    }
+  }
+
+  Future<void> _deleteExpense(int expenseId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Expense?'),
+        content: const Text('Are you sure you want to delete this expense?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        final response = await http.delete(
+          Uri.parse('${ApiService.baseUrl}/expenses/$expenseId'),
+        );
+
+        if (response.statusCode == 200) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Expense deleted')),
+          );
+          _loadExpenses();
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
+      }
+    }
+  }
+
+  String _formatDate(String isoDate) {
+    try {
+      final date = DateTime.parse(isoDate);
+      final now = DateTime.now();
+      final diff = now.difference(date);
+      
+      if (diff.inDays == 0) {
+        return 'Today ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+      } else if (diff.inDays == 1) {
+        return 'Yesterday';
+      } else if (diff.inDays < 7) {
+        return '${diff.inDays} days ago';
+      } else {
+        return '${date.month}/${date.day}/${date.year}';
+      }
+    } catch (e) {
+      return '';
     }
   }
 
@@ -861,16 +928,41 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with SingleTicker
                       margin: const EdgeInsets.only(bottom: 8),
                       child: ListTile(
                         leading: CircleAvatar(
-                          child: Text('\$'),
+                          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                          child: const Icon(Icons.receipt, size: 20),
                         ),
                         title: Text(e['participant_name']),
-                        subtitle: e['description'] != null ? Text(e['description']) : null,
-                        trailing: Text(
-                          '\$${e['amount'].toStringAsFixed(2)}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (e['description'] != null && e['description'].toString().isNotEmpty)
+                              Text(e['description']),
+                            Text(
+                              _formatDate(e['created_at']),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '\$${e['amount'].toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline, size: 20),
+                              color: Colors.red,
+                              onPressed: () => _deleteExpense(e['id']),
+                            ),
+                          ],
                         ),
                       ),
                     );

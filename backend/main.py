@@ -255,5 +255,15 @@ def get_expenses(group_id: int, db: Session = Depends(get_db)):
         ]
     }
 
+@app.delete("/expenses/{expense_id}")
+def delete_expense(expense_id: int, db: Session = Depends(get_db)):
+    """Delete an expense"""
+    expense = db.query(Expense).filter(Expense.id == expense_id).first()
+    if not expense:
+        raise HTTPException(404, "Expense not found")
+    db.delete(expense)
+    db.commit()
+    return {"status": "deleted"}
+
 # Initialize database
 Base.metadata.create_all(bind=engine)
