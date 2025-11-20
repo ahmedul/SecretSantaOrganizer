@@ -1,11 +1,13 @@
 # 🎄 DrawJoy - Secret Santa Organizer
 
-**Ship date target: December 8–10, 2025**
+**🚀 Live Backend API**: https://secretsantaorganizer-jbof.onrender.com  
+**📚 API Documentation**: https://secretsantaorganizer-jbof.onrender.com/docs
 
 A privacy-first Secret Santa app with Flutter frontend and FastAPI backend. Create groups, share links, draw names server-side, and send email notifications — all at $0 cost.
 
 > **✨ New to the project?** Start with [HOW_TO_USE.md](HOW_TO_USE.md) to understand what this does!  
-> **🛠️ Developer?** Check [QUICK_REFERENCE.md](QUICK_REFERENCE.md) for API docs and commands.
+> **🛠️ Developer?** Check [QUICK_REFERENCE.md](QUICK_REFERENCE.md) for API docs and commands.  
+> **🚀 Ready to deploy?** See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for Android & Web builds.
 
 ---
 
