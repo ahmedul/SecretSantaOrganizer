@@ -2,7 +2,7 @@
 
 **🚀 Live Backend API**: https://secretsantaorganizer-jbof.onrender.com  
 **📚 API Documentation**: https://secretsantaorganizer-jbof.onrender.com/docs  
-**🌐 Web App**: Ready to deploy! See [WEB_DEPLOY.md](WEB_DEPLOY.md)
+**🌐 Web App**: https://genuine-liger-59df28.netlify.app/
 
 A privacy-first Secret Santa app with Flutter frontend and FastAPI backend. Create groups, share links, draw names server-side, and send email notifications — all at $0 cost.
 
