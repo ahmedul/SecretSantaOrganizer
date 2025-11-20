@@ -1,6 +1,6 @@
 class ApiService {
-  // TODO: Change this to your Render URL after deployment
-  static const String baseUrl = 'http://localhost:8000';
+  // Production API URL on Render.com
+  static const String baseUrl = 'https://secretsantaorganizer-jbof.onrender.com';
   
   // Endpoints
   static String createGroup() => '$baseUrl/groups';
