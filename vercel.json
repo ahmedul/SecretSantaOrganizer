@@ -1,0 +1,6 @@
+{
+  "buildCommand": "cd flutter_app && flutter build web --release",
+  "outputDirectory": "flutter_app/build/web",
+  "framework": null,
+  "installCommand": "flutter --version"
+}
