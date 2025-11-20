@@ -39,6 +39,9 @@ class GroupCreate(BaseModel):
     budget: Optional[str] = None
     reveal_at: Optional[str] = None
 
+class WishlistUpdate(BaseModel):
+    wishlist: str
+
 @app.post("/groups", status_code=201)
 def create_group(group: GroupCreate, db: Session = Depends(get_db)):
     db_group = Group(name=group.name, budget=group.budget)
@@ -151,14 +154,14 @@ def get_group(group_id: int, db: Session = Depends(get_db)):
 # New endpoints for additional features
 
 @app.put("/participants/{participant_id}/wishlist")
-def update_wishlist(participant_id: int, wishlist: str, db: Session = Depends(get_db)):
+def update_wishlist(participant_id: int, data: WishlistUpdate, db: Session = Depends(get_db)):
     """Update participant's wishlist"""
     p = db.query(Participant).filter(Participant.id == participant_id).first()
     if not p:
         raise HTTPException(404, "Participant not found")
-    p.wishlist = wishlist
+    p.wishlist = data.wishlist
     db.commit()
-    return {"status": "updated", "wishlist": wishlist}
+    return {"status": "updated", "wishlist": data.wishlist}
 
 @app.delete("/groups/{group_id}")
 def delete_group(group_id: int, db: Session = Depends(get_db)):
