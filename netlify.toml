@@ -1,0 +1,13 @@
+[build]
+  base = "flutter_app"
+  command = "flutter build web --release"
+  publish = "build/web"
+
+[build.environment]
+  FLUTTER_VERSION = "3.38.2"
+
+# Redirect all routes to index.html for Flutter routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
