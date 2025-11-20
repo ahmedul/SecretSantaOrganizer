@@ -1,0 +1,35 @@
+{
+    "name": "DrawJoy - Secret Santa Organizer",
+    "short_name": "DrawJoy",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#DC2626",
+    "theme_color": "#DC2626",
+    "description": "Privacy-first Secret Santa organizer. Create groups, share links, draw names automatically.",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false,
+    "icons": [
+        {
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icons/Icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}
