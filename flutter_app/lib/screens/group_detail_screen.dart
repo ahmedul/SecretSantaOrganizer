@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:share_plus/share_plus.dart';
@@ -164,10 +165,56 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with SingleTicker
 
   void _shareGroup() {
     final shareLink = 'https://yourdomain.com/join/${widget.groupId}';
-    Share.share(
-      'Join my Secret Santa group on DrawJoy!\n\n$shareLink',
-      subject: 'Join ${_groupData!['name']} on DrawJoy',
-    );
+    final message = 'Join my Secret Santa group on DrawJoy!\n\n$shareLink';
+    
+    if (kIsWeb) {
+      // On web, show dialog with copyable link
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Share Group'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Group Code: ${widget.groupId}'),
+              const SizedBox(height: 16),
+              const Text('Share this link:'),
+              const SizedBox(height: 8),
+              SelectableText(
+                shareLink,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.blue,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: message));
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Copied to clipboard!')),
+                );
+              },
+              child: const Text('Copy Link'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      );
+    } else {
+      // On mobile, use native share
+      Share.share(
+        message,
+        subject: 'Join ${_groupData!['name']} on DrawJoy',
+      );
+    }
   }
 
   Future<void> _editWishlist(int participantId, String currentWishlist) async {
