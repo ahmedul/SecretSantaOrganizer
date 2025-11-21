@@ -11,6 +11,7 @@ class Group(Base):
     reveal_at = Column(DateTime, nullable=True)
     drawn = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    organizer_secret = Column(String, nullable=True)  # Secret key for organizer actions
 
     participants = relationship("Participant", back_populates="group")
     exclusions = relationship("Exclusion", back_populates="group")

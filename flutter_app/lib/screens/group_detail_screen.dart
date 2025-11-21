@@ -584,6 +584,30 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with SingleTicker
   }
 
   Future<void> _resetDraw() async {
+    // Get organizer_secret from SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    final groupsJson = prefs.getString('my_groups') ?? '[]';
+    final List<dynamic> groups = jsonDecode(groupsJson);
+    
+    // Find this group's secret
+    String? organizerSecret;
+    for (var g in groups) {
+      if (g['group_id'] == widget.groupId && g['role'] == 'organizer') {
+        organizerSecret = g['organizer_secret'];
+        break;
+      }
+    }
+    
+    if (organizerSecret == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Only the organizer can reset the draw.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -610,6 +634,8 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with SingleTicker
       try {
         final response = await http.post(
           Uri.parse('${ApiService.baseUrl}/groups/${widget.groupId}/reset-draw'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'organizer_secret': organizerSecret}),
         );
 
         if (response.statusCode == 200) {
@@ -617,6 +643,19 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with SingleTicker
             const SnackBar(content: Text('Draw reset! You can now add participants or draw again.')),
           );
           _loadGroupDetails();
+        } else if (response.statusCode == 403) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Unauthorized: Only the organizer can reset the draw.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        } else {
+          final error = jsonDecode(response.body)['detail'] ?? 'Failed to reset';
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: $error')),
+          );
+        }
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(

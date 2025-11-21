@@ -46,8 +46,9 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
         final data = jsonDecode(response.body);
         final groupId = data['group_id'];
         final shareLink = data['share_link'];
+        final organizerSecret = data['organizer_secret'];  // Get the secret from API
 
-        // Save to history
+        // Save to history with organizer_secret
         final prefs = await SharedPreferences.getInstance();
         final groupsJson = prefs.getString('my_groups') ?? '[]';
         final List<dynamic> groups = jsonDecode(groupsJson);
@@ -56,6 +57,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
           'name': _nameController.text,
           'created_at': DateTime.now().toIso8601String(),
           'role': 'organizer',
+          'organizer_secret': organizerSecret,  // Store the secret
         });
         await prefs.setString('my_groups', jsonEncode(groups));
 

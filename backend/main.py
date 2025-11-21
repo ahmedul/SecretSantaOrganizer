@@ -5,6 +5,7 @@ from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 import resend
 import os
+import secrets
 from database import SessionLocal, Base, engine
 from models import Group, Participant, Exclusion, Expense
 from derangement import derange_with_exclusions
@@ -42,13 +43,28 @@ class GroupCreate(BaseModel):
 class WishlistUpdate(BaseModel):
     wishlist: str
 
+class ResetDrawRequest(BaseModel):
+    organizer_secret: str
+
 @app.post("/groups", status_code=201)
 def create_group(group: GroupCreate, db: Session = Depends(get_db)):
-    db_group = Group(name=group.name, budget=group.budget)
+    # Generate a secret key for the organizer
+    organizer_secret = secrets.token_urlsafe(32)
+    
+    db_group = Group(
+        name=group.name, 
+        budget=group.budget,
+        organizer_secret=organizer_secret
+    )
     db.add(db_group)
     db.commit()
     db.refresh(db_group)
-    return {"group_id": db_group.id, "share_link": f"https://yourdomain.com/join/{db_group.id}"}
+    
+    return {
+        "group_id": db_group.id, 
+        "share_link": f"https://yourdomain.com/join/{db_group.id}",
+        "organizer_secret": organizer_secret  # Only returned once, on creation
+    }
 
 @app.post("/groups/{group_id}/join")
 def join_group(group_id: int, participant: ParticipantCreate, db: Session = Depends(get_db)):
@@ -111,13 +127,17 @@ def draw(group_id: int, db: Session = Depends(get_db)):
     return {"status": "drawn"}
 
 @app.post("/groups/{group_id}/reset-draw")
-def reset_draw(group_id: int, db: Session = Depends(get_db)):
-    """Reset the draw to allow adding more participants or re-drawing"""
+def reset_draw(group_id: int, reset_req: ResetDrawRequest, db: Session = Depends(get_db)):
+    """Reset the draw to allow adding more participants or re-drawing (requires organizer_secret)"""
     group = db.query(Group).filter(Group.id == group_id).first()
     if not group:
         raise HTTPException(404, "Group not found")
     if not group.drawn:
         raise HTTPException(400, "Names haven't been drawn yet")
+    
+    # Verify organizer secret
+    if group.organizer_secret != reset_req.organizer_secret:
+        raise HTTPException(403, "Unauthorized: Invalid organizer secret")
     
     # Clear all target assignments
     participants = db.query(Participant).filter(Participant.group_id == group_id).all()
