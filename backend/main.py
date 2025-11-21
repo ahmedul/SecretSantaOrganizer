@@ -22,6 +22,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Create tables on startup (includes new columns)
+@app.on_event("startup")
+def startup_event():
+    Base.metadata.create_all(bind=engine)
+
 # Dependency
 def get_db():
     db = SessionLocal()
