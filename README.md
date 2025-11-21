@@ -69,11 +69,17 @@ DrawJoy uses a **two-phase workflow** to ensure fair Secret Santa assignments:
 
 **❓ What if someone needs to join late?**
 If someone needs to join after names are drawn:
-1. **Organizer** opens the group menu (⋮)
-2. Tap **"Reset Draw"** to clear all assignments
+1. **Organizer** (the person who created the group) opens the group menu (⋮)
+2. Tap **"Reset Draw"** to clear all assignments (requires organizer authentication)
 3. The late joiner can now join the group
 4. **Organizer** taps **"Draw Names"** again to generate new assignments
 5. Everyone gets notified of their new assignments
+
+**🛡️ Organizer Authentication:**
+- Only the group **creator** can reset draws
+- When you create a group, you receive a secure organizer token
+- This prevents participants from disrupting assignments
+- The token is stored locally on your device for seamless access
 
 This ensures the Secret Santa assignments remain fair and complete - everyone has exactly one person to buy for!
 
@@ -100,6 +106,7 @@ This ensures the Secret Santa assignments remain fair and complete - everyone ha
 - 💰 **Budget Tracking** - Set spending limits and track expenses for your group
 - 🌐 **Works Remotely** - Perfect for distributed teams or families
 - 🔄 **Reset & Redraw** - Need to add someone late? Organizers can reset and redraw names
+- 🛡️ **Secure Organizer Authentication** - Only the group creator can reset draws using a cryptographic token, preventing unauthorized disruptions
 - 🎯 **Two-Phase System** - Registration open until draw, then locked to preserve assignments
 
 ## 📁 Project Structure
