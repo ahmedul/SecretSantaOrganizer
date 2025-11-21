@@ -656,7 +656,6 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> with SingleTicker
             SnackBar(content: Text('Error: $error')),
           );
         }
-        }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: ${e.toString()}')),
