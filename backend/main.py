@@ -67,7 +67,7 @@ def create_group(group: GroupCreate, db: Session = Depends(get_db)):
     
     return {
         "group_id": db_group.id, 
-        "share_link": f"https://yourdomain.com/join/{db_group.id}",
+        "share_link": f"https://ahmedul.github.io/SecretSantaOrganizer/join/{db_group.id}",
         "organizer_secret": organizer_secret  # Only returned once, on creation
     }
 
