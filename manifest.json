@@ -1,11 +1,11 @@
 {
-    "name": "DrawJoy - Secret Santa Organizer",
-    "short_name": "DrawJoy",
+    "name": "drawjoy",
+    "short_name": "drawjoy",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#DC2626",
-    "theme_color": "#DC2626",
-    "description": "Privacy-first Secret Santa organizer. Create groups, share links, draw names automatically.",
+    "background_color": "#0175C2",
+    "theme_color": "#0175C2",
+    "description": "A new Flutter project.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
